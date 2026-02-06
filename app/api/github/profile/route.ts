@@ -5,12 +5,28 @@ export async function GET() {
   const cookieStore = await cookies();
   const configCookie = cookieStore.get("voidnap_config");
 
-  if (!configCookie) {
-    return NextResponse.json({ profile: null });
+  // Get config from cookie or environment variable
+  let config;
+  if (configCookie) {
+    try {
+      config = JSON.parse(configCookie.value);
+    } catch {
+      // Invalid cookie, fallback to env var
+    }
+  }
+
+  // Fallback to environment variable for public access
+  if (!config) {
+    const publicRepo = process.env.PUBLIC_GITHUB_REPO;
+    const publicBranch = process.env.PUBLIC_GITHUB_BRANCH || "main";
+    if (publicRepo) {
+      config = { repo: publicRepo, branch: publicBranch };
+    } else {
+      return NextResponse.json({ profile: null });
+    }
   }
 
   try {
-    const config = JSON.parse(configCookie.value);
     const [owner, repoName] = config.repo.split("/");
 
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
