@@ -44,7 +44,7 @@ export async function PUT(request: Request) {
 
     const config = JSON.parse(configCookie.value);
     const body = await request.json();
-    const { type, id, content } = body; // type: 'project' | 'blog' | 'profile'
+    const { type, id, content, oldCollection } = body; // type: 'project' | 'blog' | 'profile'
 
     if (!type || !id || !content) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -74,6 +74,50 @@ export async function PUT(request: Request) {
       filePath = collection ? `data/blogs/${collection}/${fileName}` : `data/blogs/${fileName}`;
     } else {
       return NextResponse.json({ error: "Invalid type" }, { status: 400 });
+    }
+
+    // If collection changed, delete the old file first
+    const newCollection = content.collection || null;
+    if (oldCollection !== newCollection && oldCollection !== undefined && (type === "project" || type === "blog")) {
+      const oldFilePath = oldCollection
+        ? `data/${type}s/${oldCollection}/${id}.md`
+        : `data/${type}s/${id}.md`;
+
+      // Get old file SHA
+      const oldFileCheckResponse = await fetch(
+        `https://api.github.com/repos/${owner}/${repoName}/contents/${encodeURIComponent(oldFilePath)}?ref=${config.branch}`,
+        {
+          headers: {
+            Accept: "application/vnd.github.v3+json",
+            "User-Agent": "Voidnap-CMS",
+            Authorization: `Bearer ${GITHUB_TOKEN}`,
+          },
+        }
+      );
+
+      // Delete old file if it exists
+      if (oldFileCheckResponse.ok) {
+        const oldFileData = await oldFileCheckResponse.json();
+        const oldSha = oldFileData.sha;
+
+        await fetch(
+          `https://api.github.com/repos/${owner}/${repoName}/contents/${encodeURIComponent(oldFilePath)}`,
+          {
+            method: "DELETE",
+            headers: {
+              Accept: "application/vnd.github.v3+json",
+              "User-Agent": "Voidnap-CMS",
+              Authorization: `Bearer ${GITHUB_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message: `Move ${type}: ${content.title || id} to ${newCollection || "root"}`,
+              sha: oldSha,
+              branch: config.branch,
+            }),
+          }
+        );
+      }
     }
 
     // Generate markdown content with frontmatter

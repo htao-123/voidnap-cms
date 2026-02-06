@@ -39,7 +39,9 @@ export async function GET() {
 
     const files = await response.json();
     const blogs = [];
+    const blogIdsInCollections = new Set<string>();
 
+    // First, fetch files from collection directories
     for (const file of files) {
       if (file.type === "dir") {
         const dirResponse = await fetch(file.url, {
@@ -54,12 +56,24 @@ export async function GET() {
           const dirFiles = await dirResponse.json();
           for (const dirFile of dirFiles) {
             if (dirFile.name.endsWith(".md") && dirFile.name !== ".collection.md") {
+              const blogId = dirFile.name.replace(".md", "");
+              blogIdsInCollections.add(blogId);
               const blog = await fetchBlogContent(dirFile, file.name);
               if (blog) blogs.push(blog);
             }
           }
         }
-      } else if (file.name.endsWith(".md")) {
+      }
+    }
+
+    // Then, fetch files from root directory, but skip if already in a collection
+    for (const file of files) {
+      if (file.name.endsWith(".md")) {
+        const blogId = file.name.replace(".md", "");
+        // Skip if this blog is already in a collection
+        if (blogIdsInCollections.has(blogId)) {
+          continue;
+        }
         const blog = await fetchBlogContent(file);
         if (blog) blogs.push(blog);
       }

@@ -4,7 +4,8 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 interface TabsProps {
-  defaultValue: string;
+  defaultValue?: string;
+  value?: string;
   className?: string;
   children: React.ReactNode;
   onValueChange?: (value: string) => void;
@@ -32,12 +33,19 @@ const TabsContext = React.createContext<{
   setActiveTab: (value: string) => void;
 }>({ activeTab: "", setActiveTab: () => {} });
 
-export function Tabs({ defaultValue, className, children, onValueChange }: TabsProps) {
-  const [activeTab, setActiveTab] = React.useState(defaultValue);
+export function Tabs({ defaultValue, value, className, children, onValueChange }: TabsProps) {
+  const [internalValue, setInternalValue] = React.useState(defaultValue || "list");
+  const activeTab = value !== undefined ? value : internalValue;
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    onValueChange?.(value);
+  const handleTabChange = (newValue: string) => {
+    if (value !== undefined) {
+      // 受控模式：由父组件管理状态
+      onValueChange?.(newValue);
+    } else {
+      // 非受控模式：内部管理状态
+      setInternalValue(newValue);
+      onValueChange?.(newValue);
+    }
   };
 
   return (

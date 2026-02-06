@@ -1,0 +1,96 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6"/>
+      <stop offset="50%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#a78bfa"/>
+      <stop offset="100%" style="stop-color:#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="fillGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6" stop-opacity="0.2"/>
+      <stop offset="100%" style="stop-color:#06b6d4" stop-opacity="0.1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background hexagon fill -->
+  <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" fill="url(#fillGrad)"/>
+
+  <!-- Outer hexagon frame -->
+  <path d="M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z" stroke="url(#mainGrad)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+
+  <!-- Inner hexagon -->
+  <path d="M32 12 L50 22 L50 42 L32 52 L14 42 L14 22 Z" stroke="url(#accentGrad)" stroke-width="1.5" fill="none" stroke-linejoin="round" opacity="0.6"/>
+
+  <!-- Central V shape - main -->
+  <path d="M18 20 L32 46 L46 20" stroke="url(#mainGrad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Central V shape - accent -->
+  <path d="M22 24 L32 42 L42 24" stroke="url(#accentGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+
+  <!-- Circuit lines - top left -->
+  <path d="M8 18 L4 14" stroke="#8b5cf6" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="4" cy="14" r="2" fill="#8b5cf6"/>
+  <path d="M8 18 L4 22" stroke="#8b5cf6" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Circuit lines - top right -->
+  <path d="M56 18 L60 14" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="60" cy="14" r="2" fill="#06b6d4"/>
+  <path d="M56 18 L60 22" stroke="#06b6d4" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Circuit lines - bottom left -->
+  <path d="M8 46 L4 50" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="4" cy="50" r="2" fill="#6366f1"/>
+
+  <!-- Circuit lines - bottom right -->
+  <path d="M56 46 L60 50" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="60" cy="50" r="2" fill="#22d3ee"/>
+
+  <!-- Data flow particles - left arc -->
+  <circle cx="14" cy="28" r="2" fill="#8b5cf6" opacity="0.8"/>
+  <circle cx="12" cy="34" r="1.5" fill="#a78bfa" opacity="0.6"/>
+  <circle cx="14" cy="40" r="1" fill="#8b5cf6" opacity="0.4"/>
+
+  <!-- Data flow particles - right arc -->
+  <circle cx="50" cy="28" r="2" fill="#06b6d4" opacity="0.8"/>
+  <circle cx="52" cy="34" r="1.5" fill="#22d3ee" opacity="0.6"/>
+  <circle cx="50" cy="40" r="1" fill="#06b6d4" opacity="0.4"/>
+
+  <!-- Central nodes -->
+  <circle cx="18" cy="20" r="3" fill="#8b5cf6"/>
+  <circle cx="18" cy="20" r="1.5" fill="white" opacity="0.5"/>
+  <circle cx="46" cy="20" r="3" fill="#06b6d4"/>
+  <circle cx="46" cy="20" r="1.5" fill="white" opacity="0.5"/>
+  <circle cx="32" cy="46" r="3" fill="url(#mainGrad)"/>
+  <circle cx="32" cy="46" r="1.5" fill="white" opacity="0.5"/>
+
+  <!-- Tech dots on hexagon vertices -->
+  <circle cx="32" cy="4" r="1.5" fill="url(#mainGrad)"/>
+  <circle cx="8" cy="18" r="1.5" fill="#8b5cf6"/>
+  <circle cx="56" cy="18" r="1.5" fill="#06b6d4"/>
+  <circle cx="8" cy="46" r="1.5" fill="#6366f1"/>
+  <circle cx="56" cy="46" r="1.5" fill="#22d3ee"/>
+  <circle cx="32" cy="60" r="1.5" fill="url(#mainGrad)"/>
+
+  <!-- Inner decorative dots -->
+  <circle cx="24" cy="16" r="1" fill="#a78bfa" opacity="0.6"/>
+  <circle cx="40" cy="16" r="1" fill="#22d3ee" opacity="0.6"/>
+  <circle cx="20" cy="32" r="1" fill="#8b5cf6" opacity="0.4"/>
+  <circle cx="44" cy="32" r="1" fill="#06b6d4" opacity="0.4"/>
+  <circle cx="32" cy="28" r="1.5" fill="url(#accentGrad)" opacity="0.7"/>
+
+  <!-- Connecting circuit lines inside -->
+  <path d="M24 16 L20 20" stroke="#a78bfa" stroke-width="0.8" opacity="0.4"/>
+  <path d="M40 16 L44 20" stroke="#22d3ee" stroke-width="0.8" opacity="0.4"/>
+  <path d="M20 32 L18 34" stroke="#8b5cf6" stroke-width="0.8" opacity="0.3"/>
+  <path d="M44 32 L46 34" stroke="#06b6d4" stroke-width="0.8" opacity="0.3"/>
+</svg>

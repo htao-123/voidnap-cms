@@ -42,7 +42,9 @@ export async function GET() {
 
     // Filter only .md files and fetch their content
     const projects = [];
+    const projectIdsInCollections = new Set<string>();
 
+    // First, fetch files from collection directories
     for (const file of files) {
       if (file.type === "dir") {
         // It's a collection - fetch files inside
@@ -58,12 +60,24 @@ export async function GET() {
           const dirFiles = await dirResponse.json();
           for (const dirFile of dirFiles) {
             if (dirFile.name.endsWith(".md") && dirFile.name !== ".collection.md") {
+              const projectId = dirFile.name.replace(".md", "");
+              projectIdsInCollections.add(projectId);
               const project = await fetchProjectContent(dirFile, file.name);
               if (project) projects.push(project);
             }
           }
         }
-      } else if (file.name.endsWith(".md")) {
+      }
+    }
+
+    // Then, fetch files from root directory, but skip if already in a collection
+    for (const file of files) {
+      if (file.name.endsWith(".md")) {
+        const projectId = file.name.replace(".md", "");
+        // Skip if this project is already in a collection
+        if (projectIdsInCollections.has(projectId)) {
+          continue;
+        }
         const project = await fetchProjectContent(file);
         if (project) projects.push(project);
       }

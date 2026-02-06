@@ -42,17 +42,16 @@ export default function EditProjectPage() {
 
     setIsSaving(true);
     try {
-      // Ensure collection and createdAt are preserved from original project
+      // Ensure createdAt is preserved from original project
       const updatedProject: Project = {
         ...project,
         ...formData,
         id: project.id,
-        collection: project.collection,
         createdAt: project.createdAt,
       };
 
-      // Push to GitHub directly
-      const pushed = await pushProject(updatedProject);
+      // Push to GitHub directly, passing old collection for cleanup
+      const pushed = await pushProject(updatedProject, project.collection);
       if (pushed) {
         // Sync from GitHub to get the latest data
         await syncProjects();

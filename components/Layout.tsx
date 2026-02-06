@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/lib/data-context";
+import { useTheme } from "@/lib/theme-context";
 import { cn } from "@/lib/utils";
 import { Menu, X, Code2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
@@ -13,6 +14,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const { isAuthenticated } = useData();
+  const { theme } = useTheme();
 
   const navItems = [
     { label: "首页", path: "/" },
@@ -27,10 +29,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link
             href="/"
-            className="flex items-center gap-2 font-display font-bold text-xl hover:opacity-80 transition"
+            className="flex items-center hover:opacity-80 transition"
           >
-            <Code2 className="h-6 w-6 text-primary" />
-            <span>htao</span>
+            <img
+              src={theme === "dark" ? "/logo-dark.svg" : "/logo-light.svg"}
+              alt="Voidnap CMS"
+              className="h-9 auto"
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -104,7 +109,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       <footer className="border-t py-8 bg-muted/30">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} htao. Built with Next.js & Tailwind.</p>
+          <p>© {new Date().getFullYear()} Voidnap CMS. Powered by GitHub.</p>
         </div>
       </footer>
     </div>

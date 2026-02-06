@@ -26,14 +26,14 @@ interface DataContextType {
   updateProject: (project: Project) => void;
   deleteProject: (id: string) => void;
   syncProjects: () => Promise<boolean>;
-  pushProject: (project: Project) => Promise<boolean>;
+  pushProject: (project: Project, oldCollection?: string | null) => Promise<boolean>;
 
   blogs: BlogPost[];
   addBlog: (blog: BlogPost) => void;
   updateBlog: (blog: BlogPost) => void;
   deleteBlog: (id: string) => void;
   syncBlogs: () => Promise<boolean>;
-  pushBlog: (blog: BlogPost) => Promise<boolean>;
+  pushBlog: (blog: BlogPost, oldCollection?: string | null) => Promise<boolean>;
 
   blogCollections: Collection[];
   projectCollections: Collection[];
@@ -55,31 +55,6 @@ interface DataContextType {
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
-
-const STORAGE_KEYS = {
-  PROJECTS: "voidnap_projects",
-  BLOGS: "voidnap_blogs",
-  PROFILE: "voidnap_profile",
-};
-
-function getStorageData<T>(key: string): T | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : null;
-  } catch {
-    return null;
-  }
-}
-
-function setStorageData<T>(key: string, value: T): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (e) {
-    console.error("Failed to save to localStorage:", e);
-  }
-}
 
 // Default empty profile
 const defaultProfile: UserProfile = {
@@ -119,18 +94,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Refs to prevent duplicate API calls
   const isFetchingBlogsCollectionsRef = useRef(false);
   const isFetchingProjectsCollectionsRef = useRef(false);
-
-  // Load data from localStorage on mount
-  useEffect(() => {
-    const storedProfile = getStorageData<UserProfile>(STORAGE_KEYS.PROFILE);
-    if (storedProfile) setProfile(storedProfile);
-
-    const storedProjects = getStorageData<Project[]>(STORAGE_KEYS.PROJECTS);
-    if (storedProjects) setProjects(storedProjects);
-
-    const storedBlogs = getStorageData<BlogPost[]>(STORAGE_KEYS.BLOGS);
-    if (storedBlogs) setBlogs(storedBlogs);
-  }, []);
 
   // Check authentication and repo config on mount
   useEffect(() => {
@@ -187,7 +150,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         if (data.profile) {
           setProfile(data.profile);
-          setStorageData(STORAGE_KEYS.PROFILE, data.profile);
           return true;
         }
       }
@@ -204,7 +166,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         if (data.projects && data.projects.length > 0) {
           setProjects(data.projects);
-          setStorageData(STORAGE_KEYS.PROJECTS, data.projects);
           return true;
         }
       }
@@ -221,7 +182,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         if (data.blogs && data.blogs.length > 0) {
           setBlogs(data.blogs);
-          setStorageData(STORAGE_KEYS.BLOGS, data.blogs);
           return true;
         }
       }
@@ -264,14 +224,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Profile actions
   const updateProfile = (newProfile: UserProfile) => {
     setProfile(newProfile);
-    setStorageData(STORAGE_KEYS.PROFILE, newProfile);
   };
 
   // Project CRUD - now only for UI state, actual data comes from GitHub
   const addProject = (project: Project) => {
     const newProjects = [...projects, project];
     setProjects(newProjects);
-    setStorageData(STORAGE_KEYS.PROJECTS, newProjects);
   };
 
   const updateProject = (updatedProject: Project) => {
@@ -279,7 +237,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       p.id === updatedProject.id ? updatedProject : p
     );
     setProjects(newProjects);
-    setStorageData(STORAGE_KEYS.PROJECTS, newProjects);
   };
 
   const deleteProject = async (id: string) => {
@@ -301,7 +258,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const newProjects = projects.filter((p) => p.id !== id);
         setProjects(newProjects);
-        setStorageData(STORAGE_KEYS.PROJECTS, newProjects);
       }
     } catch (error) {
       console.error("Failed to delete from GitHub:", error);
@@ -312,7 +268,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const addBlog = (blog: BlogPost) => {
     const newBlogs = [...blogs, blog];
     setBlogs(newBlogs);
-    setStorageData(STORAGE_KEYS.BLOGS, newBlogs);
   };
 
   const updateBlog = (updatedBlog: BlogPost) => {
@@ -320,7 +275,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       b.id === updatedBlog.id ? updatedBlog : b
     );
     setBlogs(newBlogs);
-    setStorageData(STORAGE_KEYS.BLOGS, newBlogs);
   };
 
   const deleteBlog = async (id: string) => {
@@ -342,7 +296,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const newBlogs = blogs.filter((b) => b.id !== id);
         setBlogs(newBlogs);
-        setStorageData(STORAGE_KEYS.BLOGS, newBlogs);
       }
     } catch (error) {
       console.error("Failed to delete from GitHub:", error);
@@ -392,7 +345,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const pushProject = async (project: Project): Promise<boolean> => {
+  const pushProject = async (project: Project, oldCollection?: string | null): Promise<boolean> => {
     setIsPushing(true);
     try {
       const res = await fetch("/api/github/push", {
@@ -402,6 +355,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           type: "project",
           id: project.id,
           content: project,
+          oldCollection,
         }),
       });
       return res.ok;
@@ -412,7 +366,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const pushBlog = async (blog: BlogPost): Promise<boolean> => {
+  const pushBlog = async (blog: BlogPost, oldCollection?: string | null): Promise<boolean> => {
     setIsPushing(true);
     try {
       const res = await fetch("/api/github/push", {
@@ -422,6 +376,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           type: "blog",
           id: blog.id,
           content: blog,
+          oldCollection,
         }),
       });
       return res.ok;

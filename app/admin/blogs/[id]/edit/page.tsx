@@ -41,17 +41,16 @@ export default function EditBlogPage() {
 
     setIsSaving(true);
     try {
-      // Ensure collection is preserved from original blog
+      // Ensure publishedAt is preserved from original blog
       const updatedBlog: BlogPost = {
         ...blog,
         ...formData,
         id: blog.id,
-        collection: blog.collection,
         publishedAt: blog.publishedAt,
       };
 
-      // Push to GitHub directly
-      const pushed = await pushBlog(updatedBlog);
+      // Push to GitHub directly, passing old collection for cleanup
+      const pushed = await pushBlog(updatedBlog, blog.collection);
       if (pushed) {
         // Sync from GitHub to get the latest data
         await syncBlogs();

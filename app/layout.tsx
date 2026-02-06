@@ -20,8 +20,12 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "AlexDev | Portfolio",
-  description: "AI全栈工程师个人作品集",
+  title: "Voidnap CMS",
+  description: "基于 GitHub 的内容管理系统",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/logo-icon.svg",
+  },
 };
 
 export default function RootLayout({

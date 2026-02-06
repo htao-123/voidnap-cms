@@ -1,0 +1,92 @@
+<svg width="200" height="48" viewBox="0 0 200 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="darkLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c084fc"/>
+      <stop offset="50%" style="stop-color:#818cf8"/>
+      <stop offset="100%" style="stop-color:#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="darkAccentGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e879f9"/>
+      <stop offset="100%" style="stop-color:#67e8f9"/>
+    </linearGradient>
+    <linearGradient id="textGradDark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#c084fc"/>
+      <stop offset="50%" style="stop-color:#818cf8"/>
+      <stop offset="100%" style="stop-color:#22d3ee"/>
+    </linearGradient>
+    <filter id="glowDarkLogo">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="textGlowDark">
+      <feDropShadow dx="0" dy="0" stdDeviation="1" flood-color="#c084fc" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Hexagon Icon -->
+  <g filter="url(#glowDarkLogo)">
+    <!-- Background hexagon fill -->
+    <path d="M24 4 L42 14 L42 34 L24 44 L6 34 L6 14 Z" fill="#c084fc" fill-opacity="0.15"/>
+
+    <!-- Outer hexagon frame -->
+    <path d="M24 4 L42 14 L42 34 L24 44 L6 34 L6 14 Z" stroke="url(#darkLogoGrad)" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+
+    <!-- Inner hexagon -->
+    <path d="M24 8 L38 15 L38 33 L24 40 L10 33 L10 15 Z" stroke="url(#darkAccentGrad)" stroke-width="1" fill="none" stroke-linejoin="round" opacity="0.7"/>
+
+    <!-- Circuit lines - top left -->
+    <path d="M6 14 L3 11" stroke="#c084fc" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+    <circle cx="3" cy="11" r="1.5" fill="#c084fc"/>
+
+    <!-- Circuit lines - top right -->
+    <path d="M42 14 L45 11" stroke="#22d3ee" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+    <circle cx="45" cy="11" r="1.5" fill="#22d3ee"/>
+
+    <!-- Circuit lines - bottom -->
+    <path d="M24 40 L24 43" stroke="#818cf8" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+    <path d="M21 43 L24 43 L27 43" stroke="#818cf8" stroke-width="0.8" stroke-linecap="round" opacity="0.4"/>
+
+    <!-- Main V shape -->
+    <path d="M13 13 L24 35 L35 13" stroke="url(#darkLogoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+    <!-- Accent V shape -->
+    <path d="M15 16 L24 32 L33 16" stroke="url(#darkAccentGrad)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.8"/>
+
+    <!-- Central data flow -->
+    <path d="M21 29 L24 32 L27 29" stroke="#67e8f9" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.7"/>
+
+    <!-- Nodes with inner highlight -->
+    <circle cx="13" cy="13" r="2.2" fill="#c084fc"/>
+    <circle cx="13" cy="13" r="1" fill="white" opacity="0.6"/>
+    <circle cx="35" cy="13" r="2.2" fill="#22d3ee"/>
+    <circle cx="35" cy="13" r="1" fill="white" opacity="0.6"/>
+    <circle cx="24" cy="35" r="2.2" fill="url(#darkLogoGrad)"/>
+    <circle cx="24" cy="35" r="1" fill="white" opacity="0.6"/>
+
+    <!-- Data particles - left side -->
+    <circle cx="17" cy="21" r="1.2" fill="#c084fc" opacity="0.9"/>
+    <circle cx="19" cy="26" r="0.8" fill="#e879f9" opacity="0.7"/>
+
+    <!-- Data particles - right side -->
+    <circle cx="31" cy="21" r="1.2" fill="#22d3ee" opacity="0.9"/>
+    <circle cx="29" cy="26" r="0.8" fill="#67e8f9" opacity="0.7"/>
+  </g>
+
+  <!-- Text: Voidnap with Outfit font, gradient and glow -->
+  <text x="54" y="30" font-family="'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="24" font-weight="700" fill="url(#textGradDark)" filter="url(#textGlowDark)" style="font-variant: small-caps;">
+    Voidnap
+  </text>
+
+  <!-- Text: CMS -->
+  <text x="54" y="42" font-family="'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#94a3b8" letter-spacing="4">
+    CMS
+  </text>
+
+  <!-- Decorative dots after text with glow -->
+  <circle cx="125" cy="26" r="1.2" fill="#c084fc" opacity="0.7"/>
+  <circle cx="130" cy="26" r="0.8" fill="#22d3ee" opacity="0.6"/>
+  <circle cx="134" cy="26" r="0.5" fill="#818cf8" opacity="0.5"/>
+</svg>
