@@ -3,34 +3,35 @@ import { cookies } from "next/headers";
 
 export async function GET() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("voidnap_session");
 
-  if (!sessionCookie) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  try {
-    const sessionData = JSON.parse(sessionCookie.value);
-
-    // Check if session has expired
-    if (sessionData.expiresAt && sessionData.expiresAt < Date.now()) {
-      return NextResponse.json({ error: "Session expired" }, { status: 401 });
-    }
-
-    // Get config from cookie if exists
-    const configCookie = cookieStore.get("voidnap_config");
-    if (configCookie) {
+  // Public endpoint - allow reading config without authentication
+  // This allows frontend to load and display public content
+  const configCookie = cookieStore.get("voidnap_config");
+  if (configCookie) {
+    try {
       return NextResponse.json(JSON.parse(configCookie.value));
+    } catch {
+      // Invalid config cookie, try env var
     }
-
-    // No config set yet
-    return NextResponse.json({
-      repo: null,
-      branch: "main",
-    });
-  } catch {
-    return NextResponse.json({ error: "Invalid session" }, { status: 401 });
   }
+
+  // Fallback to environment variable for public access
+  // This allows the site to display content without requiring login
+  const publicRepo = process.env.PUBLIC_GITHUB_REPO;
+  const publicBranch = process.env.PUBLIC_GITHUB_BRANCH || "main";
+
+  if (publicRepo) {
+    return NextResponse.json({
+      repo: publicRepo,
+      branch: publicBranch,
+    });
+  }
+
+  // No config set yet - return empty config
+  return NextResponse.json({
+    repo: null,
+    branch: "main",
+  });
 }
 
 export async function PUT(request: Request) {
