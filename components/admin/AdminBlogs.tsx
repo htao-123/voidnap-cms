@@ -27,6 +27,11 @@ export function AdminBlogs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Sync with context when collections change (e.g., after deletion)
+  useEffect(() => {
+    setCollections(blogCollections);
+  }, [blogCollections]);
+
   // 筛选逻辑
   const filteredBlogs = useMemo(() => {
     if (selectedCollection === "all") {

@@ -27,6 +27,11 @@ export function AdminProjects() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Sync with context when collections change (e.g., after deletion)
+  useEffect(() => {
+    setCollections(projectCollections);
+  }, [projectCollections]);
+
   // 筛选逻辑
   const filteredProjects = useMemo(() => {
     if (selectedCollection === "all") {
