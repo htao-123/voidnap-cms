@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function BlogDetailPage() {
   const { blogs } = useData();
@@ -76,7 +78,9 @@ export default function BlogDetailPage() {
             <p className="text-xl text-muted-foreground leading-relaxed mb-8">
               {blog.excerpt}
             </p>
-            <div className="whitespace-pre-wrap">{blog.content}</div>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {blog.content}
+            </ReactMarkdown>
           </div>
         </article>
       </div>

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, ExternalLink, Github } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ProjectDetailPage() {
   const { projects } = useData();
@@ -108,7 +110,9 @@ export default function ProjectDetailPage() {
 
           {/* Content */}
           <div className="prose prose-lg dark:prose-invert max-w-none">
-            <div className="whitespace-pre-wrap">{project.content}</div>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {project.content}
+            </ReactMarkdown>
           </div>
         </article>
       </div>

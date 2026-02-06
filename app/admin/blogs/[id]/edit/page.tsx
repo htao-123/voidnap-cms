@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { MarkdownEditor } from "@/components/editor/MarkdownEditor";
 
 export default function EditBlogPage() {
   const router = useRouter();
@@ -89,7 +90,7 @@ export default function EditBlogPage() {
         </div>
       </header>
 
-      <div className="container max-w-3xl py-8">
+      <div className="container max-w-9xl py-8">
         <Card>
           <CardHeader>
             <CardTitle>文章信息</CardTitle>
@@ -117,12 +118,10 @@ export default function EditBlogPage() {
 
             <div className="grid gap-2">
               <Label>文章内容（Markdown）</Label>
-              <Textarea
-                className="font-mono text-sm min-h-[400px]"
-                placeholder="支持 Markdown 语法..."
+              <MarkdownEditor
                 value={formData.content || ""}
-                onChange={e => setFormData({...formData, content: e.target.value})}
-                rows={15}
+                onChange={(value) => setFormData({ ...formData, content: value })}
+                placeholder="支持 Markdown 语法..."
               />
             </div>
 
