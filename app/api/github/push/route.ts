@@ -37,12 +37,28 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Session expired" }, { status: 401 });
     }
 
+    // Get config from cookie or environment variable
+    let config;
     const configCookie = cookieStore.get("voidnap_config");
-    if (!configCookie) {
-      return NextResponse.json({ error: "Repository not configured" }, { status: 400 });
+    if (configCookie) {
+      try {
+        config = JSON.parse(configCookie.value);
+      } catch {
+        // Invalid cookie, fallback to env var
+      }
     }
 
-    const config = JSON.parse(configCookie.value);
+    // Fallback to environment variable
+    if (!config) {
+      const publicRepo = process.env.PUBLIC_GITHUB_REPO;
+      const publicBranch = process.env.PUBLIC_GITHUB_BRANCH || "main";
+      if (publicRepo) {
+        config = { repo: publicRepo, branch: publicBranch };
+      } else {
+        return NextResponse.json({ error: "Repository not configured" }, { status: 400 });
+      }
+    }
+
     const body = await request.json();
     const { type, id, content, oldCollection } = body; // type: 'project' | 'blog' | 'profile'
 

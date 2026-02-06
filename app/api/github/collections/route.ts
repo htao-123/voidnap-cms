@@ -118,12 +118,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Session expired" }, { status: 401 });
     }
 
+    // Get config from cookie or environment variable
+    let config;
     const configCookie = cookieStore.get("voidnap_config");
-    if (!configCookie) {
-      return NextResponse.json({ error: "Repository not configured" }, { status: 400 });
+    if (configCookie) {
+      try {
+        config = JSON.parse(configCookie.value);
+      } catch {
+        // Invalid cookie, fallback to env var
+      }
     }
 
-    const config = JSON.parse(configCookie.value);
+    // Fallback to environment variable
+    if (!config) {
+      const publicRepo = process.env.PUBLIC_GITHUB_REPO;
+      const publicBranch = process.env.PUBLIC_GITHUB_BRANCH || "main";
+      if (publicRepo) {
+        config = { repo: publicRepo, branch: publicBranch };
+      } else {
+        return NextResponse.json({ error: "Repository not configured" }, { status: 400 });
+      }
+    }
+
     const body = await request.json();
     const { type, id, name, description } = body; // type: 'blogs' | 'projects'
 
@@ -199,12 +215,28 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Session expired" }, { status: 401 });
     }
 
+    // Get config from cookie or environment variable
+    let config;
     const configCookie = cookieStore.get("voidnap_config");
-    if (!configCookie) {
-      return NextResponse.json({ error: "Repository not configured" }, { status: 400 });
+    if (configCookie) {
+      try {
+        config = JSON.parse(configCookie.value);
+      } catch {
+        // Invalid cookie, fallback to env var
+      }
     }
 
-    const config = JSON.parse(configCookie.value);
+    // Fallback to environment variable
+    if (!config) {
+      const publicRepo = process.env.PUBLIC_GITHUB_REPO;
+      const publicBranch = process.env.PUBLIC_GITHUB_BRANCH || "main";
+      if (publicRepo) {
+        config = { repo: publicRepo, branch: publicBranch };
+      } else {
+        return NextResponse.json({ error: "Repository not configured" }, { status: 400 });
+      }
+    }
+
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") || "blogs"; // 'blogs' or 'projects'
     const collectionId = searchParams.get("id");
