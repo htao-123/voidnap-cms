@@ -124,7 +124,7 @@ export function AdminProjects() {
                       <Badge variant="outline">{projects.length}</Badge>
                     </div>
                   </SelectItem>
-                  {collections.map(c => (
+                  {collectionData.map(c => (
                     <SelectItem key={c.id} value={c.id}>
                       <div className="flex items-center justify-between w-full gap-2">
                         <span>{c.name}</span>
