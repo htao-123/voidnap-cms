@@ -15,7 +15,13 @@ export async function GET(request: NextRequest) {
     // Exchange code for access token
     const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || "";
     const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || "";
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/callback`;
+
+    // Get the origin from the request headers for dynamic redirect URI
+    const origin = request.headers.get("x-forwarded-host")
+      ? `${request.headers.get("x-forwarded-proto") || "https"}://${request.headers.get("x-forwarded-host")}`
+      : `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}`;
+
+    const redirectUri = `${origin}/api/auth/callback`;
 
     const tokenResponse = await fetch(
       "https://github.com/login/oauth/access_token",
