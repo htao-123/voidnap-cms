@@ -15,6 +15,7 @@ interface GitHubRepo {
   homepage: string | null;
   html_url: string;
   private: boolean;
+  fork: boolean;
   owner: {
     login: string;
     avatar_url: string;
