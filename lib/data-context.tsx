@@ -113,6 +113,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             syncProfileInternal(),
             syncProjectsInternal(),
             syncBlogsInternal(),
+            fetchCollections("blogs"),
+            fetchCollections("projects"),
           ]);
         }
       }

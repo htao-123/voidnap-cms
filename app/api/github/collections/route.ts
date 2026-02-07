@@ -1,15 +1,85 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-export async function GET(request: Request) {
+// Types
+interface BlogConfig {
+  repo: string;
+  branch: string;
+}
+
+interface Collection {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface CollectionFrontmatter {
+  name?: string;
+  description?: string;
+}
+
+// Helper function to convert content to base64
+function toBase64(content: string): string {
+  return Buffer.from(content).toString("base64");
+}
+
+// Helper to parse frontmatter
+function parseFrontmatter(content: string): CollectionFrontmatter {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+  const match = content.match(frontmatterRegex);
+
+  if (!match) {
+    return {};
+  }
+
+  const frontmatter: CollectionFrontmatter = {};
+  const lines = match[1].split("\n");
+
+  for (const line of lines) {
+    const colonIndex = line.indexOf(":");
+    if (colonIndex > 0) {
+      const key = line.slice(0, colonIndex).trim();
+      let value: string | boolean = line.slice(colonIndex + 1).trim();
+
+      // Strip quotes from string values
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+
+      // Parse arrays
+      if (value.startsWith("[") && value.endsWith("]")) {
+        value = value
+          .slice(1, -1)
+          .split(",")
+          .map((v) => v.trim().replace(/"/g, ""))
+          .join(", ");
+      } else if (value === "true") {
+        value = true;
+      } else if (value === "false") {
+        value = false;
+      }
+
+      (frontmatter as any)[key] = value;
+    }
+  }
+
+  return frontmatter;
+}
+
+// Cache configuration - revalidate every 5 minutes
+export const revalidate = 300;
+export const dynamic = "force-dynamic";
+
+export async function GET(request: Request): Promise<NextResponse<{ collections?: Collection[]; error?: string }>> {
   const cookieStore = await cookies();
   const configCookie = cookieStore.get("voidnap_config");
 
   // Get config from cookie or environment variable
-  let config;
+  let config: BlogConfig | null = null;
   if (configCookie) {
     try {
-      config = JSON.parse(configCookie.value);
+      config = JSON.parse(configCookie.value) as BlogConfig;
     } catch {
       // Invalid cookie, fallback to env var
     }
@@ -26,16 +96,16 @@ export async function GET(request: Request) {
     }
   }
 
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+  if (!GITHUB_TOKEN) {
+    return NextResponse.json({ collections: [] });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") || "blogs"; // 'blogs' or 'projects'
 
     const [owner, repoName] = config.repo.split("/");
-
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-    if (!GITHUB_TOKEN) {
-      return NextResponse.json({ collections: [] });
-    }
 
     // Fetch directory contents
     const response = await fetch(
@@ -57,12 +127,11 @@ export async function GET(request: Request) {
     }
 
     const files = await response.json();
-    const collections: Array<{ id: string; name: string; description?: string }> = [];
 
-    // Only directories are collections
-    for (const file of files) {
-      if (file.type === "dir") {
-        // Try to fetch .collection.md file for metadata
+    // OPTIMIZATION: Parallel fetch all collection metadata
+    const collectionPromises = files
+      .filter((file: { type: string }) => file.type === "dir")
+      .map(async (file: { name: string }) => {
         let collectionName = file.name;
         let description: string | undefined;
 
@@ -88,13 +157,14 @@ export async function GET(request: Request) {
           // Ignore error, use directory name
         }
 
-        collections.push({
+        return {
           id: file.name,
           name: collectionName,
           description,
-        });
-      }
-    }
+        } as Collection;
+      });
+
+    const collections = await Promise.all(collectionPromises);
 
     return NextResponse.json({ collections });
   } catch (error) {
@@ -104,7 +174,7 @@ export async function GET(request: Request) {
 }
 
 // POST to create a new collection
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse<{ success?: boolean; error?: string }>> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("voidnap_session");
 
@@ -119,11 +189,11 @@ export async function POST(request: Request) {
     }
 
     // Get config from cookie or environment variable
-    let config;
+    let config: BlogConfig | null = null;
     const configCookie = cookieStore.get("voidnap_config");
     if (configCookie) {
       try {
-        config = JSON.parse(configCookie.value);
+        config = JSON.parse(configCookie.value) as BlogConfig;
       } catch {
         // Invalid cookie, fallback to env var
       }
@@ -153,11 +223,6 @@ export async function POST(request: Request) {
     }
 
     const [owner, repoName] = config.repo.split("/");
-
-    // Function to convert content to base64
-    function toBase64(content: string): string {
-      return Buffer.from(content).toString("base64");
-    }
 
     // Create .collection.md file content
     const fileContent = `---
@@ -201,7 +266,7 @@ description: "${description || ""}"
 }
 
 // DELETE to delete a collection and all its contents
-export async function DELETE(request: Request) {
+export async function DELETE(request: Request): Promise<NextResponse<{ success?: boolean; error?: string }>> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("voidnap_session");
 
@@ -216,11 +281,11 @@ export async function DELETE(request: Request) {
     }
 
     // Get config from cookie or environment variable
-    let config;
+    let config: BlogConfig | null = null;
     const configCookie = cookieStore.get("voidnap_config");
     if (configCookie) {
       try {
-        config = JSON.parse(configCookie.value);
+        config = JSON.parse(configCookie.value) as BlogConfig;
       } catch {
         // Invalid cookie, fallback to env var
       }
@@ -273,18 +338,22 @@ export async function DELETE(request: Request) {
 
     const files = await listResponse.json();
 
-    // Delete all files in the collection
-    const deletePromises = files.map(async (file: any) => {
+    // OPTIMIZATION: Parallel delete all files in the collection
+    const githubHeaders = {
+      headers: {
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "Voidnap-CMS",
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        "Content-Type": "application/json",
+      } as const,
+    };
+
+    const deletePromises = files.map(async (file: { path: string; sha: string }) => {
       const deleteResponse = await fetch(
         `https://api.github.com/repos/${owner}/${repoName}/contents/${file.path}`,
         {
           method: "DELETE",
-          headers: {
-            Accept: "application/vnd.github.v3+json",
-            "User-Agent": "Voidnap-CMS",
-            Authorization: `Bearer ${GITHUB_TOKEN}`,
-            "Content-Type": "application/json",
-          },
+          ...githubHeaders,
           body: JSON.stringify({
             message: `Delete collection: ${collectionId}`,
             sha: file.sha,
@@ -306,48 +375,4 @@ export async function DELETE(request: Request) {
     console.error("Error deleting collection:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
-
-function parseFrontmatter(content: string): Record<string, any> {
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
-  const match = content.match(frontmatterRegex);
-
-  if (!match) {
-    return {};
-  }
-
-  const frontmatter: Record<string, any> = {};
-  const lines = match[1].split("\n");
-
-  for (const line of lines) {
-    const colonIndex = line.indexOf(":");
-    if (colonIndex > 0) {
-      const key = line.slice(0, colonIndex).trim();
-      let value: any = line.slice(colonIndex + 1).trim();
-
-      // Strip quotes from string values
-      if ((value.startsWith('"') && value.endsWith('"')) ||
-          (value.startsWith("'") && value.endsWith("'"))) {
-        value = value.slice(1, -1);
-      }
-
-      if (value.startsWith("[") && value.endsWith("]")) {
-        value = value.slice(1, -1).split(",").map((v: string) => v.trim().replace(/"/g, ""));
-      } else if (value === "true") {
-        // Only convert to boolean for known boolean keys
-        if (key === "published" || key === "private" || key === "featured") {
-          value = true;
-        }
-      } else if (value === "false") {
-        // Only convert to boolean for known boolean keys
-        if (key === "published" || key === "private" || key === "featured") {
-          value = false;
-        }
-      }
-
-      frontmatter[key] = value;
-    }
-  }
-
-  return frontmatter;
 }

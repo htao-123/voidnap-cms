@@ -1,15 +1,57 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-export async function GET() {
+// Types
+interface BlogConfig {
+  repo: string;
+  branch: string;
+}
+
+interface Profile {
+  name: string;
+  title: string;
+  bio: string;
+  email: string;
+  avatarUrl: string;
+  socials: {
+    github: string;
+    twitter: string;
+    linkedin: string;
+  };
+  resume: {
+    experience: Array<{ role?: string; company?: string; description?: string; from?: string; to?: string }>;
+    education: Array<{ school?: string; degree?: string; field?: string; from?: string; to?: string }>;
+    skills: string[];
+  };
+}
+
+interface ProfileFrontmatter {
+  name?: string;
+  title?: string;
+  bio?: string;
+  email?: string;
+  avatarUrl?: string;
+  github?: string;
+  twitter?: string;
+  linkedin?: string;
+  experience?: ProfileFrontmatter[];
+  education?: ProfileFrontmatter[];
+  skills?: string[];
+}
+
+// Cache configuration - revalidate every 5 minutes
+export const revalidate = 300;
+export const dynamic = "force-dynamic";
+
+export async function GET(): Promise<NextResponse<{ profile?: Profile | null; error?: string }>> {
   const cookieStore = await cookies();
   const configCookie = cookieStore.get("voidnap_config");
 
   // Get config from cookie or environment variable
-  let config;
+  let config: BlogConfig | null = null;
   if (configCookie) {
     try {
-      config = JSON.parse(configCookie.value);
+      config = JSON.parse(configCookie.value) as BlogConfig;
     } catch {
       // Invalid cookie, fallback to env var
     }
@@ -26,13 +68,13 @@ export async function GET() {
     }
   }
 
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+  if (!GITHUB_TOKEN) {
+    return NextResponse.json({ profile: null });
+  }
+
   try {
     const [owner, repoName] = config.repo.split("/");
-
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-    if (!GITHUB_TOKEN) {
-      return NextResponse.json({ profile: null });
-    }
 
     // Fetch profile from GitHub repository
     const response = await fetch(
@@ -53,7 +95,7 @@ export async function GET() {
     const content = await response.text();
     const frontmatter = parseFrontmatter(content);
 
-    const profile = {
+    const profile: Profile = {
       name: frontmatter.name || "User",
       title: frontmatter.title || "",
       bio: frontmatter.bio || "",
@@ -65,8 +107,8 @@ export async function GET() {
         linkedin: frontmatter.linkedin || "",
       },
       resume: {
-        experience: frontmatter.experience || [],
-        education: frontmatter.education || [],
+        experience: (frontmatter.experience as any) || [],
+        education: (frontmatter.education as any) || [],
         skills: frontmatter.skills || [],
       },
     };
@@ -78,7 +120,7 @@ export async function GET() {
   }
 }
 
-function parseFrontmatter(content: string): Record<string, any> {
+function parseFrontmatter(content: string): ProfileFrontmatter {
   const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
   const match = content.match(frontmatterRegex);
 
@@ -86,7 +128,7 @@ function parseFrontmatter(content: string): Record<string, any> {
     return {};
   }
 
-  const frontmatter: Record<string, any> = {};
+  const frontmatter: ProfileFrontmatter = {};
   const lines = match[1].split("\n");
 
   for (const line of lines) {
@@ -101,15 +143,20 @@ function parseFrontmatter(content: string): Record<string, any> {
         value = value.slice(1, -1);
       }
 
+      // Parse arrays
       if (value.startsWith("[") && value.endsWith("]")) {
-        value = value.slice(1, -1).split(",").map((v: string) => v.trim().replace(/"/g, ""));
+        value = value
+          .slice(1, -1)
+          .split(",")
+          .map((v: string) => v.trim().replace(/"/g, ""))
+          .filter(Boolean);
       } else if (value === "true") {
         value = true;
       } else if (value === "false") {
         value = false;
       }
 
-      frontmatter[key] = value;
+      (frontmatter as any)[key] = value;
     }
   }
 

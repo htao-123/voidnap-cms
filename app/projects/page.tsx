@@ -96,72 +96,43 @@ export default function ProjectsPage() {
 
           {/* 合集视图 */}
           <TabsContent value="collections" className="animate-in fade-in-50 slide-in-from-bottom-2">
-            {collections.length > 0 || uncollectedCount > 0 ? (
-              <div>
-                <div className="flex flex-wrap gap-6">
-                  {/* Uncollected */}
-                  {uncollectedCount > 0 && (
-                    <button
-                      onClick={() => {
-                        setSelectedCollection("__uncollected__");
-                        setActiveTab("list");
-                      }}
-                      className="group text-left w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
-                    >
-                      <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-amber-200 dark:border-amber-900/30 bg-gradient-to-br from-amber-50/50 to-amber-100/30 dark:from-amber-950/20 dark:to-amber-900/10 p-6 transition-all hover:shadow-lg hover:shadow-amber-500/10 hover:border-amber-400 dark:hover:border-amber-700">
-                        <div className="flex items-start gap-4">
-                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform">
+            {collections.length > 0 ? (
+              <div className="flex flex-wrap gap-6">
+                {/* Collections */}
+                {collectionData.map((collection) => (
+                  <button
+                    key={collection.id}
+                    onClick={() => {
+                      setSelectedCollection(collection.id);
+                      setActiveTab("list");
+                    }}
+                    className="group text-left w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
+                  >
+                    <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 transition-all hover:shadow-xl hover:shadow-primary/5 hover:border-primary/50">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="relative">
+                        <div className="flex items-start gap-4 mb-3">
+                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-lg shadow-primary/10 group-hover:scale-110 group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
                             <Folder className="w-7 h-7" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-lg mb-1 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                              未分类项目
+                            <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors line-clamp-1">
+                              {collection.name}
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                              {uncollectedCount} 个项目
+                              {collection.count} 个项目
                             </p>
                           </div>
                         </div>
+                        {collection.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {collection.description}
+                          </p>
+                        )}
                       </div>
-                    </button>
-                  )}
-
-                  {/* Collections */}
-                  {collectionData.map((collection) => (
-                    <button
-                      key={collection.id}
-                      onClick={() => {
-                        setSelectedCollection(collection.id);
-                        setActiveTab("list");
-                      }}
-                      className="group text-left w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
-                    >
-                      <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 transition-all hover:shadow-xl hover:shadow-primary/5 hover:border-primary/50">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative">
-                          <div className="flex items-start gap-4 mb-3">
-                            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-lg shadow-primary/10 group-hover:scale-110 group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
-                              <Folder className="w-7 h-7" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors line-clamp-1">
-                                {collection.name}
-                              </h3>
-                              <p className="text-sm text-muted-foreground">
-                                {collection.count} 个项目
-                              </p>
-                            </div>
-                          </div>
-                          {collection.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {collection.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                    </div>
+                  </button>
+                ))}
               </div>
             ) : (
               <div className="max-w-2xl mx-auto text-center py-20">

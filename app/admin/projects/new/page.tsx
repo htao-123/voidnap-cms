@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ArrowLeft, Save, Loader2, FileEdit, Github } from "lucide-react";
 import Link from "next/link";
 import { MarkdownEditor } from "@/components/editor/MarkdownEditor";
+import { GithubRepoImporter } from "@/components/admin/GithubRepoImporter";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -23,6 +25,7 @@ export default function NewProjectPage() {
   const [newCollectionName, setNewCollectionName] = useState("");
   const [newCollectionId, setNewCollectionId] = useState("");
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
+  const [activeTab, setActiveTab] = useState<"manual" | "github">("manual");
 
   useEffect(() => {
     fetchCollections("projects").then(setCollections);
@@ -98,6 +101,16 @@ export default function NewProjectPage() {
     }
   };
 
+  const handleGitHubImport = (project: Project) => {
+    // Pre-fill form with imported project data
+    setFormData({
+      ...project,
+      collection: formData.collection, // preserve selected collection
+    });
+    // Switch to manual tab for editing
+    setActiveTab("manual");
+  };
+
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="border-b bg-background/80 backdrop-blur-md">
@@ -117,160 +130,192 @@ export default function NewProjectPage() {
       </header>
 
       <div className="container max-w-9xl py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>项目信息</CardTitle>
-            <CardDescription>填写项目详细信息，支持 Markdown 格式</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-2">
-              <Label>标题 <span className="text-destructive">*</span></Label>
-              <Input
-                placeholder="输入项目名称"
-                value={formData.title || ""}
-                onChange={e => setFormData({...formData, title: e.target.value})}
-              />
-            </div>
+        {/* Tabs for Manual Creation and GitHub Import */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "manual" | "github")} className="mb-6">
+          <TabsList className="w-fit">
+            <TabsTrigger value="manual" className="gap-2">
+              <FileEdit className="w-4 h-4" />
+              手动创建
+            </TabsTrigger>
+            <TabsTrigger value="github" className="gap-2">
+              <Github className="w-4 h-4" />
+              从 GitHub 导入
+            </TabsTrigger>
+          </TabsList>
 
-            <div className="grid gap-2">
-              <Label>简介</Label>
-              <Textarea
-                placeholder="简短描述项目（一两句话）"
-                value={formData.description || ""}
-                onChange={e => setFormData({...formData, description: e.target.value})}
-                rows={2}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label>详细内容（Markdown）</Label>
-              <MarkdownEditor
-                value={formData.content || ""}
-                onChange={(value) => setFormData({ ...formData, content: value })}
-                placeholder="支持 Markdown 语法..."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>封面图片 URL</Label>
-                <Input
-                  placeholder="https://..."
-                  value={formData.imageUrl || ""}
-                  onChange={e => setFormData({...formData, imageUrl: e.target.value})}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>技术标签</Label>
-                <Input
-                  placeholder="React, TypeScript, ..."
-                  value={formData.tags?.join(", ") || ""}
-                  onChange={e => setFormData({...formData, tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean)})}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Demo 链接</Label>
-                <Input
-                  placeholder="https://demo.example.com"
-                  value={formData.link || ""}
-                  onChange={e => setFormData({...formData, link: e.target.value})}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>GitHub 链接</Label>
-                <Input
-                  placeholder="https://github.com/..."
-                  value={formData.github || ""}
-                  onChange={e => setFormData({...formData, github: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>合集</Label>
-              <div className="flex gap-2">
-                <Select
-                  value={formData.collection || ""}
-                  onValueChange={(value) => {
-                    if (value === "new") {
-                      setShowNewCollection(true);
-                    } else {
-                      setFormData({ ...formData, collection: value || null });
-                    }
-                  }}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="选择合集（可选）" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">无合集</SelectItem>
-                    {collections.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="new">+ 新建合集</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {showNewCollection && (
-                <div className="mt-2 p-3 border rounded-lg bg-muted/50 space-y-2">
+          {/* Manual Creation Tab */}
+          <TabsContent value="manual" className="animate-in fade-in-50 slide-in-from-bottom-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>项目信息</CardTitle>
+                <CardDescription>填写项目详细信息，支持 Markdown 格式</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-2">
+                  <Label>标题 <span className="text-destructive">*</span></Label>
                   <Input
-                    placeholder="合集ID（英文，如：web）"
-                    value={newCollectionId}
-                    onChange={(e) => setNewCollectionId(e.target.value)}
+                    placeholder="输入项目名称"
+                    value={formData.title || ""}
+                    onChange={e => setFormData({...formData, title: e.target.value})}
                   />
-                  <Input
-                    placeholder="合集名称（如：Web 项目）"
-                    value={newCollectionName}
-                    onChange={(e) => setNewCollectionName(e.target.value)}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>简介</Label>
+                  <Textarea
+                    placeholder="简短描述项目（一两句话）"
+                    value={formData.description || ""}
+                    onChange={e => setFormData({...formData, description: e.target.value})}
+                    rows={2}
                   />
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={handleCreateCollection}
-                      disabled={isCreatingCollection || isPushing}
-                    >
-                      {isCreatingCollection ? "创建中..." : "创建"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setShowNewCollection(false)}
-                    >
-                      取消
-                    </Button>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>详细内容（Markdown）</Label>
+                  <MarkdownEditor
+                    value={formData.content || ""}
+                    onChange={(value) => setFormData({ ...formData, content: value })}
+                    placeholder="支持 Markdown 语法..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label>封面图片 URL</Label>
+                    <Input
+                      placeholder="https://..."
+                      value={formData.imageUrl || ""}
+                      onChange={e => setFormData({...formData, imageUrl: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>技术标签</Label>
+                    <Input
+                      placeholder="React, TypeScript, ..."
+                      value={formData.tags?.join(", ") || ""}
+                      onChange={e => setFormData({...formData, tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean)})}
+                    />
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="flex gap-3 pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/admin?tab=projects")}
-              >
-                取消
-              </Button>
-              <Button onClick={handleSave} disabled={isSaving || isPushing} className="gap-2">
-                {isSaving || isPushing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {isPushing ? "推送中..." : "保存中..."}
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    保存并推送
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label>Demo 链接</Label>
+                    <Input
+                      placeholder="https://demo.example.com"
+                      value={formData.link || ""}
+                      onChange={e => setFormData({...formData, link: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>GitHub 链接</Label>
+                    <Input
+                      placeholder="https://github.com/..."
+                      value={formData.github || ""}
+                      onChange={e => setFormData({...formData, github: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>合集</Label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={formData.collection || ""}
+                      onValueChange={(value) => {
+                        if (value === "new") {
+                          setShowNewCollection(true);
+                        } else {
+                          setFormData({ ...formData, collection: value || null });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="选择合集（可选）" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">无合集</SelectItem>
+                        {collections.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="new">+ 新建合集</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {showNewCollection && (
+                    <div className="mt-2 p-3 border rounded-lg bg-muted/50 space-y-2">
+                      <Input
+                        placeholder="合集ID（英文，如：web）"
+                        value={newCollectionId}
+                        onChange={(e) => setNewCollectionId(e.target.value)}
+                      />
+                      <Input
+                        placeholder="合集名称（如：Web 项目）"
+                        value={newCollectionName}
+                        onChange={(e) => setNewCollectionName(e.target.value)}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={handleCreateCollection}
+                          disabled={isCreatingCollection || isPushing}
+                        >
+                          {isCreatingCollection ? "创建中..." : "创建"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShowNewCollection(false)}
+                        >
+                          取消
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push("/admin?tab=projects")}
+                  >
+                    取消
+                  </Button>
+                  <Button onClick={handleSave} disabled={isSaving || isPushing} className="gap-2">
+                    {isSaving || isPushing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {isPushing ? "推送中..." : "保存中..."}
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        保存并推送
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* GitHub Import Tab */}
+          <TabsContent value="github" className="animate-in fade-in-50 slide-in-from-bottom-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>从 GitHub 导入项目</CardTitle>
+                <CardDescription>
+                  从你的 GitHub 仓库中快速导入项目，自动提取 README、技术栈等信息
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GithubRepoImporter onImport={handleGitHubImport} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

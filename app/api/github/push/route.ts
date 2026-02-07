@@ -1,6 +1,53 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
+// Types
+interface BlogConfig {
+  repo: string;
+  branch: string;
+}
+
+interface ProfileContent {
+  name: string;
+  title: string;
+  bio: string;
+  email: string;
+  avatarUrl: string;
+  socials: {
+    github?: string;
+    twitter?: string;
+    linkedin?: string;
+  };
+  resume: {
+    experience?: Array<any>;
+    education?: Array<any>;
+    skills?: string[];
+  };
+}
+
+interface ProjectContent {
+  title: string;
+  description: string;
+  imageUrl: string;
+  tags: string[];
+  link?: string;
+  github?: string;
+  createdAt: string;
+  collection?: string | null;
+  content?: string;
+}
+
+interface BlogContent {
+  title: string;
+  excerpt: string;
+  coverImage: string;
+  tags: string[];
+  publishedAt: string;
+  status: string;
+  collection?: string | null;
+  content?: string;
+}
+
 // Helper function to convert content to base64
 function toBase64(content: string): string {
   return Buffer.from(content).toString("base64");
@@ -11,7 +58,7 @@ function generateFrontmatter(data: Record<string, any>): string {
   let frontmatter = "---\n";
   for (const [key, value] of Object.entries(data)) {
     if (Array.isArray(value)) {
-      frontmatter += `${key}: [${value.map(v => `"${v}"`).join(", ")}]\n`;
+      frontmatter += `${key}: [${value.map((v) => `"${v}"`).join(", ")}]\n`;
     } else if (typeof value === "boolean") {
       frontmatter += `${key}: ${value}\n`;
     } else if (value && value !== "") {
@@ -22,7 +69,7 @@ function generateFrontmatter(data: Record<string, any>): string {
   return frontmatter;
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: Request): Promise<NextResponse<{ success?: boolean; content?: any; error?: string }>> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("voidnap_session");
 
@@ -38,11 +85,11 @@ export async function PUT(request: Request) {
     }
 
     // Get config from cookie or environment variable
-    let config;
+    let config: BlogConfig | null = null;
     const configCookie = cookieStore.get("voidnap_config");
     if (configCookie) {
       try {
-        config = JSON.parse(configCookie.value);
+        config = JSON.parse(configCookie.value) as BlogConfig;
       } catch {
         // Invalid cookie, fallback to env var
       }
@@ -73,6 +120,14 @@ export async function PUT(request: Request) {
 
     const [owner, repoName] = config.repo.split("/");
 
+    // GitHub API headers
+    const githubHeaders = {
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "Voidnap-CMS",
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      "Content-Type": "application/json",
+    } as const;
+
     // Determine file path based on type and collection
     let filePath: string;
     let fileName: string;
@@ -81,11 +136,11 @@ export async function PUT(request: Request) {
       filePath = `data/profile.md`;
       fileName = "profile.md";
     } else if (type === "project") {
-      const collection = content.collection || null;
+      const collection = (content as ProjectContent).collection || null;
       fileName = `${id}.md`;
       filePath = collection ? `data/projects/${collection}/${fileName}` : `data/projects/${fileName}`;
     } else if (type === "blog") {
-      const collection = content.collection || null;
+      const collection = (content as BlogContent).collection || null;
       fileName = `${id}.md`;
       filePath = collection ? `data/blogs/${collection}/${fileName}` : `data/blogs/${fileName}`;
     } else {
@@ -93,7 +148,7 @@ export async function PUT(request: Request) {
     }
 
     // If collection changed, delete the old file first
-    const newCollection = content.collection || null;
+    const newCollection = (content as ProjectContent | BlogContent).collection || null;
     if (oldCollection !== newCollection && oldCollection !== undefined && (type === "project" || type === "blog")) {
       const oldFilePath = oldCollection
         ? `data/${type}s/${oldCollection}/${id}.md`
@@ -103,11 +158,7 @@ export async function PUT(request: Request) {
       const oldFileCheckResponse = await fetch(
         `https://api.github.com/repos/${owner}/${repoName}/contents/${encodeURIComponent(oldFilePath)}?ref=${config.branch}`,
         {
-          headers: {
-            Accept: "application/vnd.github.v3+json",
-            "User-Agent": "Voidnap-CMS",
-            Authorization: `Bearer ${GITHUB_TOKEN}`,
-          },
+          headers: githubHeaders,
         }
       );
 
@@ -120,14 +171,9 @@ export async function PUT(request: Request) {
           `https://api.github.com/repos/${owner}/${repoName}/contents/${encodeURIComponent(oldFilePath)}`,
           {
             method: "DELETE",
-            headers: {
-              Accept: "application/vnd.github.v3+json",
-              "User-Agent": "Voidnap-CMS",
-              Authorization: `Bearer ${GITHUB_TOKEN}`,
-              "Content-Type": "application/json",
-            },
+            headers: githubHeaders,
             body: JSON.stringify({
-              message: `Move ${type}: ${content.title || id} to ${newCollection || "root"}`,
+              message: `Move ${type}: ${(content as ProjectContent | BlogContent).title || id} to ${newCollection || "root"}`,
               sha: oldSha,
               branch: config.branch,
             }),
@@ -140,52 +186,51 @@ export async function PUT(request: Request) {
     let fileContent = "";
 
     if (type === "profile") {
+      const profileContent = content as ProfileContent;
       fileContent = generateFrontmatter({
-        name: content.name,
-        title: content.title,
-        bio: content.bio,
-        email: content.email,
-        avatarUrl: content.avatarUrl,
-        github: content.socials?.github,
-        twitter: content.socials?.twitter,
-        linkedin: content.socials?.linkedin,
-        experience: content.resume?.experience || [],
-        education: content.resume?.education || [],
-        skills: content.resume?.skills || [],
+        name: profileContent.name,
+        title: profileContent.title,
+        bio: profileContent.bio,
+        email: profileContent.email,
+        avatarUrl: profileContent.avatarUrl,
+        github: profileContent.socials?.github,
+        twitter: profileContent.socials?.twitter,
+        linkedin: profileContent.socials?.linkedin,
+        experience: profileContent.resume?.experience || [],
+        education: profileContent.resume?.education || [],
+        skills: profileContent.resume?.skills || [],
       });
       fileContent += "\n"; // Empty content section after frontmatter
     } else if (type === "project") {
+      const projectContent = content as ProjectContent;
       fileContent = generateFrontmatter({
-        title: content.title,
-        description: content.description,
-        imageUrl: content.imageUrl,
-        tags: content.tags || [],
-        link: content.link,
-        github: content.github,
-        createdAt: content.createdAt,
+        title: projectContent.title,
+        description: projectContent.description,
+        imageUrl: projectContent.imageUrl,
+        tags: projectContent.tags || [],
+        link: projectContent.link,
+        github: projectContent.github,
+        createdAt: projectContent.createdAt,
       });
-      fileContent += `\n${content.content || ""}`;
+      fileContent += `\n${projectContent.content || ""}`;
     } else if (type === "blog") {
+      const blogContent = content as BlogContent;
       fileContent = generateFrontmatter({
-        title: content.title,
-        excerpt: content.excerpt,
-        coverImage: content.coverImage,
-        tags: content.tags || [],
-        publishedAt: content.publishedAt,
-        status: content.status,
+        title: blogContent.title,
+        excerpt: blogContent.excerpt,
+        coverImage: blogContent.coverImage,
+        tags: blogContent.tags || [],
+        publishedAt: blogContent.publishedAt,
+        status: blogContent.status,
       });
-      fileContent += `\n${content.content || ""}`;
+      fileContent += `\n${blogContent.content || ""}`;
     }
 
     // Check if file exists first
     const checkResponse = await fetch(
       `https://api.github.com/repos/${owner}/${repoName}/contents/${encodeURIComponent(filePath)}?ref=${config.branch}`,
       {
-        headers: {
-          Accept: "application/vnd.github.v3+json",
-          "User-Agent": "Voidnap-CMS",
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-        },
+        headers: githubHeaders,
       }
     );
 
@@ -197,16 +242,15 @@ export async function PUT(request: Request) {
     }
 
     // Create or update file
-    const method = sha ? "PUT" : "PUT"; // GitHub API uses PUT for both create and update
     const bodyData = sha
       ? {
-          message: `Update ${type}: ${content.title || id}`,
+          message: `Update ${type}: ${(content as ProjectContent | BlogContent).title || id}`,
           content: toBase64(fileContent),
           sha,
           branch: config.branch,
         }
       : {
-          message: `Create ${type}: ${content.title || id}`,
+          message: `Create ${type}: ${(content as ProjectContent | BlogContent).title || id}`,
           content: toBase64(fileContent),
           branch: config.branch,
         };
@@ -215,12 +259,7 @@ export async function PUT(request: Request) {
       `https://api.github.com/repos/${owner}/${repoName}/contents/${encodeURIComponent(filePath)}`,
       {
         method: "PUT",
-        headers: {
-          Accept: "application/vnd.github.v3+json",
-          "User-Agent": "Voidnap-CMS",
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-          "Content-Type": "application/json",
-        },
+        headers: githubHeaders,
         body: JSON.stringify(bodyData),
       }
     );
@@ -247,7 +286,7 @@ export async function PUT(request: Request) {
 }
 
 // DELETE endpoint for removing files
-export async function DELETE(request: Request) {
+export async function DELETE(request: Request): Promise<NextResponse<{ success?: boolean; error?: string }>> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("voidnap_session");
 
@@ -267,7 +306,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Repository not configured" }, { status: 400 });
     }
 
-    const config = JSON.parse(configCookie.value);
+    const config = JSON.parse(configCookie.value) as BlogConfig;
     const body = await request.json();
     const { type, id, collection } = body;
 
@@ -281,6 +320,14 @@ export async function DELETE(request: Request) {
     }
 
     const [owner, repoName] = config.repo.split("/");
+
+    // GitHub API headers
+    const githubHeaders = {
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "Voidnap-CMS",
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      "Content-Type": "application/json",
+    } as const;
 
     // Determine file path
     let filePath: string;
@@ -296,11 +343,7 @@ export async function DELETE(request: Request) {
     const checkResponse = await fetch(
       `https://api.github.com/repos/${owner}/${repoName}/contents/${encodeURIComponent(filePath)}?ref=${config.branch}`,
       {
-        headers: {
-          Accept: "application/vnd.github.v3+json",
-          "User-Agent": "Voidnap-CMS",
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-        },
+        headers: githubHeaders,
       }
     );
 
@@ -316,12 +359,7 @@ export async function DELETE(request: Request) {
       `https://api.github.com/repos/${owner}/${repoName}/contents/${encodeURIComponent(filePath)}`,
       {
         method: "DELETE",
-        headers: {
-          Accept: "application/vnd.github.v3+json",
-          "User-Agent": "Voidnap-CMS",
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-          "Content-Type": "application/json",
-        },
+        headers: githubHeaders,
         body: JSON.stringify({
           message: `Delete ${type}: ${id}`,
           sha,
