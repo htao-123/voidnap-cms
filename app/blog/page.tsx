@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 export default function BlogPage() {
   const { blogs, blogCollections, fetchCollections } = useData();
   const [collections, setCollections] = useState(blogCollections);
-  const [activeTab, setActiveTab] = useState<string>("collections");
+  const [activeTab, setActiveTab] = useState<string>("list");
   const [selectedCollection, setSelectedCollection] = useState<string>("all");
   const [search, setSearch] = useState("");
 
@@ -106,70 +106,21 @@ export default function BlogPage() {
           <div className="flex justify-center mb-10">
             <TabsList className="h-10 p-1 bg-muted/50">
               <TabsTrigger
-                value="collections"
-                className="gap-2 data-[state=active]:bg-background"
-              >
-                <Folder className="w-4 h-4" aria-hidden="true" />
-                合集视图
-              </TabsTrigger>
-              <TabsTrigger
                 value="list"
                 className="gap-2 data-[state=active]:bg-background"
               >
                 <FileText className="w-4 h-4" aria-hidden="true" />
                 列表视图
               </TabsTrigger>
+              <TabsTrigger
+                value="collections"
+                className="gap-2 data-[state=active]:bg-background"
+              >
+                <Folder className="w-4 h-4" aria-hidden="true" />
+                合集视图
+              </TabsTrigger>
             </TabsList>
           </div>
-
-          {/* Collections View */}
-          <TabsContent value="collections" className="animate-in fade-in-50 slide-in-from-bottom-2">
-            {collections.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Collections */}
-                {collectionData.map((collection) => (
-                  <button
-                    key={collection.id}
-                    onClick={() => handleCollectionClick(collection.id)}
-                    className="group text-left"
-                    aria-label={`View ${collection.count} articles in ${collection.name}`}
-                  >
-                    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:shadow-xl hover:shadow-primary/5 hover:border-primary/50">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                      <div className="relative">
-                        <div className="flex items-start gap-4 mb-3">
-                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-lg shadow-primary/10 group-hover:scale-110 group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
-                            <Folder className="w-7 h-7" aria-hidden="true" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors line-clamp-1">
-                              {collection.name}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {collection.count} 篇文章
-                            </p>
-                          </div>
-                        </div>
-                        {collection.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {collection.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="max-w-2xl mx-auto text-center py-20">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mb-6">
-                  <FileText className="w-10 h-10 text-muted-foreground/40" aria-hidden="true" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">暂无文章</h3>
-                <p className="text-muted-foreground">还没有发布任何文章</p>
-              </div>
-            )}
-          </TabsContent>
 
           {/* List View */}
           <TabsContent value="list" className="animate-in fade-in-50 slide-in-from-bottom-2">
@@ -264,6 +215,55 @@ export default function BlogPage() {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Collections View */}
+          <TabsContent value="collections" className="animate-in fade-in-50 slide-in-from-bottom-2">
+            {collections.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Collections */}
+                {collectionData.map((collection) => (
+                  <button
+                    key={collection.id}
+                    onClick={() => handleCollectionClick(collection.id)}
+                    className="group text-left"
+                    aria-label={`View ${collection.count} articles in ${collection.name}`}
+                  >
+                    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:shadow-xl hover:shadow-primary/5 hover:border-primary/50">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      <div className="relative">
+                        <div className="flex items-start gap-4 mb-3">
+                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-lg shadow-primary/10 group-hover:scale-110 group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
+                            <Folder className="w-7 h-7" aria-hidden="true" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors line-clamp-1">
+                              {collection.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {collection.count} 篇文章
+                            </p>
+                          </div>
+                        </div>
+                        {collection.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {collection.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="max-w-2xl mx-auto text-center py-20">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mb-6">
+                  <FileText className="w-10 h-10 text-muted-foreground/40" aria-hidden="true" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">暂无文章</h3>
+                <p className="text-muted-foreground">还没有发布任何文章</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

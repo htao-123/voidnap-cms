@@ -14,12 +14,12 @@ export function ProjectCard({ project }: { project: Project }) {
       className="group overflow-hidden flex flex-col h-full hover:shadow-lg transition-all border-muted hover:border-primary/50 cursor-pointer"
       onClick={() => router.push(`/projects/${project.id}`)}
     >
-      <div className="relative aspect-video overflow-hidden bg-muted">
+      <div className="relative overflow-hidden bg-muted">
         {project.imageUrl ? (
           <img
             src={project.imageUrl}
             alt={project.title}
-            className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500"
           />
         ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">

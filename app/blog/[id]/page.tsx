@@ -64,16 +64,6 @@ export default function BlogDetailPage() {
             {blog.title}
           </h1>
 
-          {blog.coverImage && (
-            <div className="aspect-video rounded-lg overflow-hidden mb-8">
-              <img
-                src={blog.coverImage}
-                alt={blog.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <p className="text-xl text-muted-foreground leading-relaxed mb-8">
               {blog.excerpt}

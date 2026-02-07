@@ -301,12 +301,27 @@ export async function DELETE(request: Request): Promise<NextResponse<{ success?:
       return NextResponse.json({ error: "Session expired" }, { status: 401 });
     }
 
+    // Get config from cookie or environment variable
+    let config: BlogConfig | null = null;
     const configCookie = cookieStore.get("voidnap_config");
-    if (!configCookie) {
-      return NextResponse.json({ error: "Repository not configured" }, { status: 400 });
+    if (configCookie) {
+      try {
+        config = JSON.parse(configCookie.value) as BlogConfig;
+      } catch {
+        // Invalid cookie, fallback to env var
+      }
     }
 
-    const config = JSON.parse(configCookie.value) as BlogConfig;
+    // Fallback to environment variable
+    if (!config) {
+      const publicRepo = process.env.PUBLIC_GITHUB_REPO;
+      const publicBranch = process.env.PUBLIC_GITHUB_BRANCH || "main";
+      if (publicRepo) {
+        config = { repo: publicRepo, branch: publicBranch };
+      } else {
+        return NextResponse.json({ error: "Repository not configured" }, { status: 400 });
+      }
+    }
     const body = await request.json();
     const { type, id, collection } = body;
 

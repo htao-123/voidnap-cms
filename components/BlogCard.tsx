@@ -22,12 +22,12 @@ export function BlogCard({ blog, priority }: BlogCardProps) {
         <CardHeader className="p-6 space-y-4">
           {/* Cover Image */}
           {blog.coverImage && (
-            <div className="aspect-[16/10] rounded-lg overflow-hidden bg-muted/30">
+            <div className="rounded-lg overflow-hidden bg-muted/30">
               <img
                 src={blog.coverImage}
                 alt={blog.title}
                 loading={priority ? "eager" : "lazy"}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-auto transition-transform duration-500 group-hover:scale-105"
               />
             </div>
           )}

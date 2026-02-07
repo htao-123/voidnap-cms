@@ -97,17 +97,6 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          {/* Cover Image */}
-          {project.imageUrl && (
-            <div className="aspect-video rounded-xl overflow-hidden mb-8 border">
-              <img
-                src={project.imageUrl}
-                alt={project.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-
           {/* Content */}
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>

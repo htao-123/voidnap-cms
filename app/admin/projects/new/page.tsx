@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Save, Loader2, FileEdit, Github } from "lucide-react";
 import Link from "next/link";
 import { MarkdownEditor } from "@/components/editor/MarkdownEditor";
+import { ImageUpload } from "@/components/editor/ImageUpload";
 import { GithubRepoImporter } from "@/components/admin/GithubRepoImporter";
 
 export default function NewProjectPage() {
@@ -179,23 +180,22 @@ export default function NewProjectPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label>封面图片 URL</Label>
-                    <Input
-                      placeholder="https://..."
-                      value={formData.imageUrl || ""}
-                      onChange={e => setFormData({...formData, imageUrl: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>技术标签</Label>
-                    <Input
-                      placeholder="React, TypeScript, ..."
-                      value={formData.tags?.join(", ") || ""}
-                      onChange={e => setFormData({...formData, tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean)})}
-                    />
-                  </div>
+                <div className="grid gap-2">
+                  <ImageUpload
+                    value={formData.imageUrl || ""}
+                    onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                    type="projects"
+                    aspectRatio="16:10"
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>技术标签</Label>
+                  <Input
+                    placeholder="React, TypeScript, ..."
+                    value={formData.tags?.join(", ") || ""}
+                    onChange={e => setFormData({...formData, tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean)})}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
