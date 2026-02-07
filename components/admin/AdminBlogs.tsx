@@ -262,12 +262,12 @@ export function AdminBlogs() {
         </div>
 
         {/* Collections Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-wrap gap-4">
           {/* Collections */}
           {collectionData.map(collection => (
             <div
               key={collection.id}
-              className="rounded-xl border bg-card p-6 shadow-sm cursor-pointer hover:bg-muted/50 transition-colors"
+              className="rounded-xl border bg-card p-6 shadow-sm cursor-pointer hover:bg-muted/50 transition-colors w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.75rem)]"
               onClick={() => {
                 setSelectedCollection(collection.id);
                 setActiveTab("list");

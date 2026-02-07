@@ -97,8 +97,8 @@ export default function ProjectsPage() {
           {/* 合集视图 */}
           <TabsContent value="collections" className="animate-in fade-in-50 slide-in-from-bottom-2">
             {collections.length > 0 || uncollectedCount > 0 ? (
-              <div className="max-w-5xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <div className="flex flex-wrap gap-6">
                   {/* Uncollected */}
                   {uncollectedCount > 0 && (
                     <button
@@ -106,7 +106,7 @@ export default function ProjectsPage() {
                         setSelectedCollection("__uncollected__");
                         setActiveTab("list");
                       }}
-                      className="group text-left"
+                      className="group text-left w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
                     >
                       <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-amber-200 dark:border-amber-900/30 bg-gradient-to-br from-amber-50/50 to-amber-100/30 dark:from-amber-950/20 dark:to-amber-900/10 p-6 transition-all hover:shadow-lg hover:shadow-amber-500/10 hover:border-amber-400 dark:hover:border-amber-700">
                         <div className="flex items-start gap-4">
@@ -134,7 +134,7 @@ export default function ProjectsPage() {
                         setSelectedCollection(collection.id);
                         setActiveTab("list");
                       }}
-                      className="group text-left"
+                      className="group text-left w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
                     >
                       <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 transition-all hover:shadow-xl hover:shadow-primary/5 hover:border-primary/50">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
